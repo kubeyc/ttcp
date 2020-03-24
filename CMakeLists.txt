@@ -4,9 +4,9 @@ project(ttcp LANGUAGES CXX)
 
 set(APP_EXE ttcp)
 
-set(TTCP_HEADERS common.h inet_address.h socket.h)
+set(TTCP_HEADERS common.h inet_address.h socket.h accept.h tcp_stream.h)
 
-set(TTCP_SRCS inet_address.cc)
+set(TTCP_SRCS socket.cc inet_address.cc accept.cc tcp_stream.cc)
 
 add_library(ttpclib STATIC  ${TTCP_SRCS} ${TTCP_HEADERS})
 

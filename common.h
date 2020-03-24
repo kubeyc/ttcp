@@ -1,14 +1,10 @@
 #ifndef TTCP_COMMON_H
 #define TTCP_COMMON_H
+
 #include <utility>
 #include <cstring>
+#include <cassert>
 #include <string>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-class nocopyable;
-struct copyable;
-class StringArg;
 
 class nocopyable
 {
@@ -24,7 +20,6 @@ struct copyable
 {
 
 };
-#endif /*TTCP_COMMON_H*/
 
 class StringArg: copyable
 {
@@ -70,3 +65,5 @@ public:
 private:
     char* __arg;
 };
+
+#endif /*TTCP_COMMON_H*/

@@ -1,10 +1,9 @@
 #include <iostream>
+#include "accept.h"
 #include "inet_address.h"
 
-int main() {
 
-    InetAddress addr(9090, true);
-    InetAddress cpaddr(addr.getSockAddr());
-    std::cout << addr.toEndpoint() << std::endl;
-    std::cout << cpaddr.toEndpoint() << std::endl;
+int main() {
+   Acceptor accpetor(InetAddress(19090, false));
+   accpetor.accept();
 }
