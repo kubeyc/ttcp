@@ -23,6 +23,8 @@ public:
     
     void listen(int backlog);
 
+    int connect(const InetAddress& serverAddr);
+
     void setRefuse(bool refuse);
 
     static Socket createTCP();    

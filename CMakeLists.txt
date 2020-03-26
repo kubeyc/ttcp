@@ -4,7 +4,7 @@ project(ttcp LANGUAGES CXX)
 
 set(APP_EXE ttcp)
 
-set(TTCP_HEADERS common.h inet_address.h socket.h accept.h tcp_stream.h)
+set(TTCP_HEADERS common.h inet_address.h socket.h accept.h tcp_stream.h message.h)
 
 set(TTCP_SRCS socket.cc inet_address.cc accept.cc tcp_stream.cc)
 

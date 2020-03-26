@@ -47,6 +47,15 @@ void Socket::listen(int backlog) {
     }
 }
 
+int Socket::connect(const InetAddress& serverAddr) {
+    int ret = ::connect(__sockfd, (const struct sockaddr*)&serverAddr.getSockAddr(), sizeof serverAddr.getSockAddr());
+    if (ret < 0) {
+        perror("Socket::connect");
+        abort();
+    }
+    std::cout << "Socket::connect" << std::endl;
+}
+
 void Socket::setRefuse(bool refuse) 
 {
     int optval = refuse? 1 : 0;
