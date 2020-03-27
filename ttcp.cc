@@ -146,6 +146,9 @@ void transmit(struct commandLine* linePtr)
       payloadMessage->data[i] = "0123456789ABCDEF"[i % 16];
    }
 
+   double totalMib = 1.0 * linePtr->bsNumber * linePtr->bsLength / 1024 / 1024;
+   std::printf("%.3f MiB in total\n", totalMib);
+
    int nr, wr;
    uint32_t ack = 0;
    for (int i = 0; i < linePtr->bsNumber; i++) {
