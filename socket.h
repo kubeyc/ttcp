@@ -5,6 +5,13 @@
 #include "inet_address.h"
 #include <sys/socket.h>
 
+
+class SocketConnectException :public std::exception
+{
+public:
+    virtual char const* what() noexcept { return "socket connect error"; };
+};
+
 class Socket :nocopyable
 {
 
@@ -23,7 +30,7 @@ public:
     
     void listen(int backlog);
 
-    int connect(const InetAddress& serverAddr);
+    int connect(const InetAddress& serverAddr) throw();
 
     void setRefuse(bool refuse);
 

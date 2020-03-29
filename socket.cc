@@ -47,13 +47,14 @@ void Socket::listen(int backlog) {
     }
 }
 
-int Socket::connect(const InetAddress& serverAddr) {
-    int ret = ::connect(__sockfd, (const struct sockaddr*)&serverAddr.getSockAddr(), sizeof serverAddr.getSockAddr());
-    if (ret < 0) {
-        perror("Socket::connect");
-        abort();
+int Socket::connect(const InetAddress& serverAddr) throw() {
+    int code = ::connect(__sockfd, (const struct sockaddr*)&serverAddr.getSockAddr(), sizeof serverAddr.getSockAddr());
+    if (code == -1) {
+        // TODO 更详细的错误处理
+        throw SocketConnectException();
     }
-    std::cout << "Socket::connect" << std::endl;
+
+    TTCP_DEBUG("Socket::connect");
 }
 
 void Socket::setRefuse(bool refuse) 

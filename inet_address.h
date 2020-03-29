@@ -5,6 +5,24 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <unistd.h>
+#include <exception>
+
+class InetAddressException: public std::exception
+{
+public:
+    InetAddressException(const char* s) {
+        __what = new char[strlen(s) + 1];
+        strcpy(__what, s);
+    };
+
+    ~InetAddressException() {
+        delete []__what;
+    };
+
+    virtual char const* what() const noexcept { return __what; };
+private:
+    char* __what;
+};
 
 class InetAddress: copyable
 {
@@ -13,7 +31,7 @@ public:
 
     ~InetAddress() = default;
 
-    explicit InetAddress(const StringArg& ip, in_port_t port);
+    explicit InetAddress(const StringArg& ip, in_port_t port) throw();
  
     explicit InetAddress(in_port_t port, bool loopback);
 

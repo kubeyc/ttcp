@@ -23,8 +23,6 @@ struct commandLine
 
 commandLine* parseCommandLine(int& argc, const char* argv[]) 
 {
-
-
    if (argc < 3) {
       cout << "Usage -t client/server" << endl;
       return nullptr;
@@ -43,7 +41,7 @@ commandLine* parseCommandLine(int& argc, const char* argv[])
 
       
       StringArg host, port;
-      int bsCount, bsLength;
+      int bsCount = 0, bsLength = 0;
       for (int i = 3; i < argc; i++) {
          if (strcmp(argv[i], "-s") == 0 && i+ 1 < argc) {
             host = argv[++i];
@@ -129,46 +127,52 @@ commandLine* parseCommandLine(int& argc, const char* argv[])
 
 void transmit(struct commandLine* linePtr) 
 {
-   InetAddress serverAddr(linePtr->host, static_cast<in_port_t>(linePtr->port.toi()));
-   std::unique_ptr<TcpStream> stream = TcpStream::connect(serverAddr);
+   try {
+      InetAddress serverAddr(linePtr->host, static_cast<in_port_t>(linePtr->port.toi()));
+      std::unique_ptr<TcpStream> stream = TcpStream::connect(serverAddr);
+      struct SessionMessage sessionMessage {0,0};
+      sessionMessage.number = htonl(linePtr->bsNumber);
+      sessionMessage.length = htonl(linePtr->bsLength);
+
+      stream->sendAll(&sessionMessage, sizeof sessionMessage);
    
-   struct SessionMessage sessionMessage {0,0};
-   sessionMessage.number = htonl(linePtr->bsNumber);
-   sessionMessage.length = htonl(linePtr->bsLength);
-   stream->sendAll(&sessionMessage, sizeof sessionMessage);
-   
-   int payloadMessageLen = sizeof(uint32_t) + linePtr->bsLength;
-   PayloadMessage* payloadMessage = static_cast<PayloadMessage*>(::malloc(payloadMessageLen)); 
-   assert(payloadMessage);
+      int payloadMessageLen = sizeof(uint32_t) + linePtr->bsLength;
+      PayloadMessage* payloadMessage = static_cast<PayloadMessage*>(::malloc(payloadMessageLen)); 
+      assert(payloadMessage);
 
-   payloadMessage->length = htonl(linePtr->bsLength);
-   for (int i = 0; i < linePtr->bsLength; i++) {
-      payloadMessage->data[i] = "0123456789ABCDEF"[i % 16];
-   }
-
-   double totalMib = 1.0 * linePtr->bsNumber * linePtr->bsLength / 1024 / 1024;
-   std::printf("%.3f MiB in total\n", totalMib);
-
-   int nr, wr;
-   uint32_t ack = 0;
-   for (int i = 0; i < linePtr->bsNumber; i++) {
-      wr = stream->sendAll(payloadMessage, payloadMessageLen);
-      if (wr != payloadMessageLen) {
-         perror("sendAll error");
-         abort();
+      payloadMessage->length = htonl(linePtr->bsLength);
+      for (int i = 0; i < linePtr->bsLength; i++) {
+         payloadMessage->data[i] = "0123456789ABCDEF"[i % 16];
       }
 
-      nr = stream->receiveAll(&ack, sizeof ack);
-      if (nr != sizeof ack) {
-         perror("receiveAll error");
-         abort();
-      }
+      double totalMib = 1.0 * linePtr->bsNumber * linePtr->bsLength / 1024 / 1024;
+      std::printf("%.3f MiB in total\n", totalMib);
 
-      ack = ntohl(ack);
-      if (ack != linePtr->bsLength) {
-         perror("server receiveAll error, ack not euqal");
-         abort();
+      int nr, wr;
+      uint32_t ack = 0;
+      for (int i = 0; i < linePtr->bsNumber; i++) {
+         wr = stream->sendAll(payloadMessage, payloadMessageLen);
+         if (wr != payloadMessageLen) {
+            perror("sendAll error");
+            abort();
+         }
+
+         nr = stream->receiveAll(&ack, sizeof ack);
+         if (nr != sizeof ack) {
+            perror("receiveAll error");
+            abort();
+         }
+
+         ack = ntohl(ack);
+         if (ack != linePtr->bsLength) {
+            perror("server receiveAll error, ack not euqal");
+            abort();
+         }
       }
+   } catch (InetAddressException& e) {
+      perror(e.what());
+   } catch (SocketConnectException& e) {
+      perror(e.what());
    }
 }
 
@@ -226,7 +230,8 @@ void receive(struct commandLine* linePtr)
 }
 // -t client -s host -p port -n 10 -b 1000
 // -t server -s host -p port
-int main(int argc, const char* argv[]) {
+int main(int argc, const char* argv[]) 
+{
    
    struct commandLine* linePtr = parseCommandLine(argc, argv);
    if (linePtr == nullptr) {

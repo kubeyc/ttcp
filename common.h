@@ -1,3 +1,13 @@
+#ifndef TTCP_DEBUG
+
+int __ttcp_debugging_enabled = 1;
+
+#define TTCP_DEBUG(x) do { \
+  if (__ttcp_debugging_enabled) { std::cerr << "ttcp debug: " << x << std::endl; } \
+} while (0)
+
+#endif /*TTCP_DEBUG*/
+
 #ifndef TTCP_COMMON_H
 #define TTCP_COMMON_H
 #include <iostream>

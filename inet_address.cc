@@ -1,9 +1,16 @@
 #include "inet_address.h"
-InetAddress::InetAddress(const StringArg& ip, in_port_t port) {
+InetAddress::InetAddress(const StringArg& ip, in_port_t port) throw() {
     bzero(&__sockaddr, sizeof(sockaddr_in));
-    inet_pton(AF_INET, ip.get_c_str(), &__sockaddr.sin_addr.s_addr);
-    __sockaddr.sin_port = htons(port);
     __sockaddr.sin_family = AF_INET;
+    __sockaddr.sin_port = htons(port);
+    int code = ::inet_pton(AF_INET, ip.get_c_str(), &__sockaddr.sin_addr.s_addr);
+    if (code == 0) {
+        throw InetAddressException("Not in presentation format");
+    }
+
+    if (code == -1) {
+        throw strerror(errno);
+    }
 }
 
 InetAddress::InetAddress(in_port_t port, bool loopback) {
