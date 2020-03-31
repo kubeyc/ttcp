@@ -7,7 +7,6 @@ import (
 	"net"
 )
 
-
 type SessionMessage struct {
 	Number uint32
 	Length uint32
@@ -53,10 +52,10 @@ func UnPackSessionMessage(msg *SessionMessage, data []byte) {
 
 type PayloadMessage struct {
 	Length uint32
-	Data []byte
+	Data   []byte
 }
 
-func NewPayloadMessage() *PayloadMessage{
+func NewPayloadMessage() *PayloadMessage {
 	return new(PayloadMessage)
 	// msg.Length = length
 	// msg.Data = make([]byte, 4 + length)
@@ -70,22 +69,57 @@ func NewPayloadMessage() *PayloadMessage{
 	// return msg
 }
 
-func (p *PayloadMessage) ReadPayloadLength(conn net.Conn) error {
-	data := make([]byte, 4)
-	nr, err := conn.Read(data)
+func (p *PayloadMessage) ReadBySession(conn net.Conn, msg *SessionMessage) error {
+	buf := make([]byte, 4)
+	nr, err := conn.Read(buf)
 	if err != nil {
 		if err == io.EOF {
-			return fmt.Errorf("read PayloadMessage Length error, client closed")
+			return err
 		}
 
 		panic(err)
 	}
 
-	if nr != 4 {
-		return fmt.Errorf("read PayloadMessage Length error, need 4 length data, give %d", nr)
+	if nr == 0 {
+		return fmt.Errorf("read PayloadMessage Length error, client closed")
 	}
 
-	p.Length = binary.BigEndian.Uint32(data[:])
+	p.Length = binary.BigEndian.Uint32(buf)
+	if p.Length != msg.Length {
+		return fmt.Errorf("read PayloadMessage Length error, payload message length %d != session message length %d", p.Length, msg.Length)
+	}
+
+	readn, needn := 0, int(p.Length)
+	buf = make([]byte, p.Length)
+	for readn < needn {
+		nr, err = conn.Read(buf)
+		if err != nil {
+			if err == io.EOF {
+				return err
+			}
+		}
+
+		readn += nr
+	}
+
+	if readn != needn {
+		return fmt.Errorf("read PayloadMessage data error, need %d, give %d", needn, readn)
+	}
+
+	return nil
+}
+
+func (p *PayloadMessage) WriteAck(conn net.Conn) error {
+	ack := make([]byte, 4)
+	binary.BigEndian.PutUint32(ack, p.Length)
+	nr, err := conn.Write(ack)
+	if err != nil {
+		panic(err)
+	}
+
+	if nr != 4 {
+		return fmt.Errorf("write ack to client error, need write 4 != %d", nr)
+	}
 
 	return nil
 }

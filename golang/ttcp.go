@@ -4,9 +4,8 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"time"
 )
-
-
 
 func main() {
 	ln, err := net.Listen("tcp", "127.0.0.1:19999")
@@ -37,16 +36,23 @@ func receive(conn net.Conn) {
 		log.Fatal(err)
 	}
 
+	totalMib := float64(sessionMsg.Number * sessionMsg.Length * 1.0 / 1024 / 1024)
 	fmt.Printf("receive buffer length = %d\nreceive number of buffers = %d\n", sessionMsg.Length, sessionMsg.Number)
-	fmt.Printf("%.3f MiB in total\n", float64(sessionMsg.Number * sessionMsg.Length * 1.0 / 1024 / 1024))
-	
+	fmt.Printf("%.3f MiB in total\n", totalMib)
+
 	payloadMsg := NewPayloadMessage()
 	var i uint32
+	start := time.Now()
 	for i = 0; i < sessionMsg.Number; i++ {
-		if err = payloadMsg.ReadPayloadLength(conn); err != nil {
+		if err = payloadMsg.ReadBySession(conn, sessionMsg); err != nil {
 			log.Fatal(err)
 		}
 
-		// fmt.Println(payloadMsg.Length)
+		if err = payloadMsg.WriteAck(conn); err != nil {
+			log.Fatal(err)
+		}
 	}
+	elasped := time.Since(start)
+
+	fmt.Printf("%.3f seconds\n%.3f MiB/s\n", elasped.Seconds(), totalMib/elasped.Seconds())
 }

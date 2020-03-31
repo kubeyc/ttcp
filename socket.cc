@@ -53,8 +53,6 @@ int Socket::connect(const InetAddress& serverAddr) throw() {
         // TODO 更详细的错误处理
         throw SocketConnectException();
     }
-
-    TTCP_DEBUG("Socket::connect");
 }
 
 void Socket::setRefuse(bool refuse) 

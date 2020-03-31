@@ -14,11 +14,11 @@ add_executable(${APP_EXE} ttcp.cc)
 
 target_link_libraries(${APP_EXE} ttpclib)
 
-add_executable(inet_address_test inet_address_test.cc)
+# add_executable(inet_address_test inet_address_test.cc)
 
-target_link_libraries(inet_address_test ttpclib)
+# target_link_libraries(inet_address_test ttpclib)
 
 # tcp_stream_test
-add_executable(tcp_stream_test tcp_stream_test.cc)
+# add_executable(tcp_stream_test tcp_stream_test.cc)
 
-target_link_libraries(tcp_stream_test ttpclib)
+# target_link_libraries(tcp_stream_test ttpclib)
